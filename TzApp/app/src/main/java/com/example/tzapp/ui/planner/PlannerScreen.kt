@@ -36,6 +36,15 @@ import com.example.tzapp.data.planner.PlannerEventEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import androidx.work.WorkManager
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.workDataOf
+import com.example.tzapp.work.ReminderWorker
+import java.util.concurrent.TimeUnit
 
 enum class EventType(val label: String, val color: Color) {
     MEDS("Лекарства", Color(0xFF2962FF)),
@@ -100,6 +109,55 @@ fun PlannerScreen() {
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Планировщик")
+        // Простой месячный календарь с точками
+        val cal = remember { Calendar.getInstance() }
+        val daysInMonth = remember(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH)) {
+            cal.getActualMaximum(Calendar.DAY_OF_MONTH)
+        }
+        // Парсер дат для событий
+        fun parseDate(text: String): Date? {
+            val patterns = listOf(
+                "dd.MM.yyyy HH:mm",
+                "dd.MM.yyyy",
+                "dd/MM/yyyy HH:mm",
+                "dd/MM/yyyy"
+            )
+            for (p in patterns) {
+                try {
+                    val sdf = SimpleDateFormat(p, Locale.getDefault())
+                    sdf.isLenient = false
+                    return sdf.parse(text)
+                } catch (_: Exception) {}
+            }
+            return null
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
+            Text(SimpleDateFormat("LLLL yyyy", Locale.getDefault()).format(Date()), style = MaterialTheme.typography.titleMedium)
+        }
+        androidx.compose.foundation.lazy.grid.LazyVerticalGrid(columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(7), modifier = Modifier.padding(top = 8.dp)) {
+            items(daysInMonth) { idx ->
+                val day = idx + 1
+                val dayEvents = events.filter { e ->
+                    val d = parseDate(e.dateTime)
+                    if (d != null) {
+                        val c = Calendar.getInstance().apply { time = d }
+                        c.get(Calendar.YEAR) == cal.get(Calendar.YEAR) &&
+                            c.get(Calendar.MONTH) == cal.get(Calendar.MONTH) &&
+                            c.get(Calendar.DAY_OF_MONTH) == day
+                    } else false
+                }
+                Column(modifier = Modifier.padding(4.dp)) {
+                    Text(day.toString())
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        dayEvents.take(3).forEach { e ->
+                            androidx.compose.foundation.layout.Box(
+                                modifier = Modifier.size(6.dp).background(e.type.color, CircleShape)
+                            )
+                        }
+                    }
+                }
+            }
+        }
         OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Название") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
         OutlinedTextField(value = dateTime, onValueChange = { dateTime = it }, label = { Text("Дата и время (строка)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
         Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -122,6 +180,22 @@ fun PlannerScreen() {
         Button(onClick = {
             if (title.isNotBlank()) {
                 vm.add(title, type, dateTime, reminder, repeat)
+                // Планирование уведомления
+                reminder?.let { mins ->
+                    val eventTime = parseDate(dateTime)?.time ?: System.currentTimeMillis()
+                    val triggerAt = eventTime - mins * 60_000L
+                    val delay = (triggerAt - System.currentTimeMillis()).coerceAtLeast(0L)
+                    val work = OneTimeWorkRequestBuilder<ReminderWorker>()
+                        .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                        .setInputData(
+                            workDataOf(
+                                ReminderWorker.KEY_TITLE to title,
+                                ReminderWorker.KEY_TEXT to "${type.label} | ${dateTime}",
+                                ReminderWorker.KEY_ID to (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+                            )
+                        ).build()
+                    WorkManager.getInstance(context).enqueue(work)
+                }
                 title = ""
             }
         }, modifier = Modifier.padding(top = 8.dp)) { Text("Добавить") }
