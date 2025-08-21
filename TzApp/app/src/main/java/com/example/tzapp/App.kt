@@ -183,7 +183,15 @@ fun App() {
 				RecommendationDetailScreen(id = id)
 			}
 			composable(Route.Planner.route) { PlannerScreen() }
-			composable(Route.Trainers.route) { TrainersScreen() }
+			composable(Route.Trainers.route) {
+				TrainersScreen(onGoHome = {
+					navController.navigate(Route.Home.route) {
+						popUpTo(navController.graph.startDestinationId) { saveState = true }
+						launchSingleTop = true
+						restoreState = true
+					}
+				})
+			}
 			composable(Route.Diary.route) { DiaryScreen() }
 			composable(Route.HelpNearby.route) { HelpNearbyScreen() }
 			composable(Route.Profile.route) { ProfileScreen(onRequestLogin = { navController.navigate(Route.Login.route) }, onLogout = { navController.popBackStack() }) }
