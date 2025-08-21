@@ -182,7 +182,6 @@ fun PlannerScreen(onGoHome: (() -> Unit)? = null) {
             onValueChange = { title = it },
             label = { Text("Название (русский текст поддерживается)") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
         )
         OutlinedTextField(
@@ -190,7 +189,6 @@ fun PlannerScreen(onGoHome: (() -> Unit)? = null) {
             onValueChange = { dateTime = it },
             label = { Text("Дата и время (напр. 25.08.2025 14:30)") },
             singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
         )
         Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
