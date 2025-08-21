@@ -2,21 +2,38 @@ package com.example.tzapp
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,8 +51,29 @@ import com.example.tzapp.ui.auth.LoginScreen
 import com.example.tzapp.ui.profile.ProfileScreen
 import com.example.tzapp.ui.search.SearchScreen
 import com.example.tzapp.ui.settings.SettingsScreen
+import com.example.tzapp.ui.reco.RecommendationsScreen
+import com.example.tzapp.ui.reco.RecommendationDetailScreen
+import com.example.tzapp.ui.planner.PlannerScreen
+import com.example.tzapp.ui.trainers.TrainersScreen
+import com.example.tzapp.ui.diary.DiaryScreen
+import com.example.tzapp.ui.help.HelpNearbyScreen
 
-enum class Route(val route: String) { Home("home"), List("list"), Detail("detail/{id}"), Search("search"), Profile("profile"), Login("login"), Settings("settings"), About("about") }
+enum class Route(val route: String) {
+    Home("home"),
+    List("list"),
+    Detail("detail/{id}"),
+    Search("search"),
+    Profile("profile"),
+    Login("login"),
+    Settings("settings"),
+    Recommendations("recommendations"),
+    RecommendationDetail("recommendations/{id}"),
+    Planner("planner"),
+    Trainers("trainers"),
+    Diary("diary"),
+    HelpNearby("help_nearby"),
+    About("about")
+}
 
 data class BottomItem(
 	val route: Route,
@@ -92,6 +130,11 @@ fun App() {
 		) {
 			composable(Route.Home.route) {
 				HomeScreen(
+					onOpenRecommendations = { navController.navigate(Route.Recommendations.route) },
+					onOpenTrainers = { navController.navigate(Route.Trainers.route) },
+					onOpenPlanner = { navController.navigate(Route.Planner.route) },
+					onOpenDiary = { navController.navigate(Route.Diary.route) },
+					onOpenHelpNearby = { navController.navigate(Route.HelpNearby.route) },
 					onOpenProfile = { navController.navigate(Route.Profile.route) },
 					onOpenSettings = { navController.navigate(Route.Settings.route) }
 				)
@@ -107,6 +150,18 @@ fun App() {
 				DetailScreen(id = id)
 			}
 			composable(Route.Search.route) { SearchScreen(onOpen = { id -> navController.navigate("detail/$id") }) }
+			composable(Route.Recommendations.route) { RecommendationsScreen(onOpen = { id -> navController.navigate("recommendations/$id") }) }
+			composable(
+				route = Route.RecommendationDetail.route,
+				arguments = listOf(navArgument("id") { type = NavType.IntType })
+			) { backStackEntry ->
+				val id = backStackEntry.arguments?.getInt("id") ?: -1
+				RecommendationDetailScreen(id = id)
+			}
+			composable(Route.Planner.route) { PlannerScreen() }
+			composable(Route.Trainers.route) { TrainersScreen() }
+			composable(Route.Diary.route) { DiaryScreen() }
+			composable(Route.HelpNearby.route) { HelpNearbyScreen() }
 			composable(Route.Profile.route) { ProfileScreen(onRequestLogin = { navController.navigate(Route.Login.route) }, onLogout = { navController.popBackStack() }) }
 			composable(Route.Login.route) { LoginScreen(onSuccess = { navController.popBackStack(); navController.navigate(Route.Profile.route) }) }
 			composable(Route.Settings.route) { SettingsScreen() }
@@ -120,27 +175,109 @@ private fun isSelected(destination: NavDestination?, route: String): Boolean {
 }
 
 @Composable
-private fun HomeScreen(onOpenProfile: () -> Unit, onOpenSettings: () -> Unit) {
-	Column(
-		modifier = Modifier
-			.fillMaxSize()
-			.padding(24.dp),
-		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center
-	) {
-		Text(
-			text = stringResource(id = R.string.screen_home),
-			style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
-		)
-		androidx.compose.material3.Button(
-			onClick = onOpenProfile,
-			modifier = Modifier.padding(top = 16.dp)
-		) { Text(text = stringResource(id = R.string.action_open_profile)) }
-		androidx.compose.material3.OutlinedButton(
-			onClick = onOpenSettings,
-			modifier = Modifier.padding(top = 8.dp)
-		) { Text(text = stringResource(id = R.string.action_open_settings)) }
-	}
+private fun HomeScreen(
+    onOpenRecommendations: () -> Unit,
+    onOpenTrainers: () -> Unit,
+    onOpenPlanner: () -> Unit,
+    onOpenDiary: () -> Unit,
+    onOpenHelpNearby: () -> Unit,
+    onOpenProfile: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
+    val context = LocalContext.current
+    var showEmergency by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = stringResource(id = R.string.home_daily_phrase),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyVerticalGrid(columns = GridCells.Fixed(2), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(
+                listOf(
+                    Triple(R.drawable.ic_recommendations, R.string.home_recommendations, onOpenRecommendations),
+                    Triple(R.drawable.ic_trainer, R.string.home_trainers, onOpenTrainers),
+                    Triple(R.drawable.ic_planner, R.string.home_planner, onOpenPlanner),
+                    Triple(R.drawable.ic_diary, R.string.home_diary, onOpenDiary),
+                    Triple(R.drawable.ic_help_nearby, R.string.home_help_nearby, onOpenHelpNearby)
+                )
+            ) { (icon, title, action) ->
+                androidx.compose.material3.ElevatedCard(
+                    onClick = action,
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(painter = painterResource(id = icon), contentDescription = null)
+                        Text(
+                            text = stringResource(id = title),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { showEmergency = true }, modifier = Modifier.fillMaxWidth()) {
+            Text(text = stringResource(id = R.string.home_emergency) + " 🚨")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Button(onClick = onOpenProfile, modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(id = R.string.action_open_profile))
+            }
+            OutlinedButton(onClick = onOpenSettings, modifier = Modifier.weight(1f)) {
+                Text(text = stringResource(id = R.string.action_open_settings))
+            }
+        }
+
+        if (showEmergency) {
+            AlertDialog(
+                onDismissRequest = { showEmergency = false },
+                title = { Text(stringResource(id = R.string.emergency_dialog_title)) },
+                text = {
+                    Column {
+                        Button(onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:103"))
+                            context.startActivity(intent)
+                        }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(id = R.string.emergency_call_ambulance)) }
+                        Button(onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:102"))
+                            context.startActivity(intent)
+                        }, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)) { Text(stringResource(id = R.string.emergency_call_police)) }
+                        Button(onClick = {
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:123456789"))
+                            context.startActivity(intent)
+                            Toast.makeText(context, "Задайте свой номер близких в коде", Toast.LENGTH_SHORT).show()
+                        }, modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)) { Text(stringResource(id = R.string.emergency_call_relatives)) }
+                    }
+                },
+                confirmButton = {
+                    OutlinedButton(onClick = { showEmergency = false }) { Text("OK") }
+                }
+            )
+        }
+    }
 }
 
 @Composable
