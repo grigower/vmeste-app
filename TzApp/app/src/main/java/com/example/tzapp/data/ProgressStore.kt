@@ -1,7 +1,7 @@
 package com.example.tzapp.data
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -18,7 +18,7 @@ object ProgressStore {
     fun streakFlow(context: Context): Flow<Int> = context.progressDataStore.data.map { it[KEY_STREAK] ?: 0 }
 
     suspend fun addPoints(context: Context, delta: Int) {
-        context.progressDataStore.edit { prefs: Preferences ->
+        context.progressDataStore.edit { prefs: MutablePreferences ->
             val current = prefs[KEY_POINTS] ?: 0
             prefs[KEY_POINTS] = (current + delta).coerceAtLeast(0)
         }
