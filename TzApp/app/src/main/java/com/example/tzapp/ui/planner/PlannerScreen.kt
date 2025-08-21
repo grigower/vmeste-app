@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import kotlinx.coroutines.flow.map
 import com.example.tzapp.data.planner.PlannerRepository
 import androidx.lifecycle.ViewModel
@@ -155,13 +156,22 @@ fun PlannerScreen(onGoHome: (() -> Unit)? = null) {
                             c.get(Calendar.DAY_OF_MONTH) == day
                     } else false
                 }
-                Column(modifier = Modifier.padding(4.dp)) {
-                    Text(day.toString())
-                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                        dayEvents.take(3).forEach { e ->
-                            androidx.compose.foundation.layout.Box(
-                                modifier = Modifier.size(6.dp).background(e.type.color, CircleShape)
-                            )
+                val dominantType = dayEvents.groupBy { it.type }.maxByOrNull { it.value.size }?.key
+                val bgColor = dominantType?.color?.copy(alpha = 0.18f) ?: Color.Transparent
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .background(color = bgColor, shape = RoundedCornerShape(6.dp))
+                        .padding(6.dp)
+                ) {
+                    Column {
+                        Text(day.toString())
+                        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                            dayEvents.take(3).forEach { e ->
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier.size(6.dp).background(e.type.color, CircleShape)
+                                )
+                            }
                         }
                     }
                 }
