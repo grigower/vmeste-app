@@ -21,6 +21,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -91,6 +92,7 @@ private val bottomItems = listOf(
 	BottomItem(Route.About, R.string.nav_about, R.drawable.ic_info)
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
 	val navController = rememberNavController()
