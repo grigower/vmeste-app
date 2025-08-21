@@ -6,7 +6,9 @@
 	<string name="nav_about">О приложении</string>
 
 	<string name="screen_home">Экран: Главная</string>
-	<string name="screen_list">Экран: Список</string>
+	<string name="screen_list">Экран: Список (нажмите на элемент)</string>
 	<string name="screen_about">Экран: О приложении</string>
+	<string name="screen_detail_title">Детали элемента #%1$d</string>
+	<string name="screen_detail_not_found">Элемент не найден</string>
 </resources>
 

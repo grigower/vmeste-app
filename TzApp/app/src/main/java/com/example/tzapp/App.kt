@@ -23,12 +23,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.tzapp.data.Repository
 
-enum class Route(val route: String) { Home("home"), List("list"), About("about") }
+enum class Route(val route: String) { Home("home"), List("list"), Detail("detail/{id}"), About("about") }
 
 data class BottomItem(
 	val route: Route,
@@ -82,7 +85,16 @@ fun App() {
 			modifier = Modifier.padding(padding)
 		) {
 			composable(Route.Home.route) { HomeScreen(padding) }
-			composable(Route.List.route) { ListScreen(padding) }
+			composable(Route.List.route) { ListScreen(onOpen = { id ->
+				navController.navigate("detail/$id")
+			}) }
+			composable(
+				route = Route.Detail.route,
+				arguments = listOf(navArgument("id") { type = NavType.IntType })
+			) { backStackEntry ->
+				val id = backStackEntry.arguments?.getInt("id") ?: -1
+				DetailScreen(id = id)
+			}
 			composable(Route.About.route) { AboutScreen(padding) }
 		}
 	}
@@ -98,8 +110,30 @@ private fun HomeScreen(padding: PaddingValues) {
 }
 
 @Composable
-private fun ListScreen(padding: PaddingValues) {
-	Centered(text = stringResource(id = R.string.screen_list))
+private fun ListScreen(onOpen: (Int) -> Unit) {
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        items(Repository.items.size) { index ->
+            val item = Repository.items[index]
+            androidx.compose.material3.ElevatedCard(
+                onClick = { onOpen(item.id) },
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = item.title, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = item.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -126,5 +160,40 @@ private fun Centered(text: String) {
 			style = MaterialTheme.typography.bodyLarge
 		)
 	}
+}
+
+@Composable
+private fun DetailScreen(id: Int) {
+    val item = Repository.getItemById(id)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(
+            text = stringResource(id = R.string.screen_detail_title, id),
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+        )
+        if (item != null) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+            Text(
+                text = item.description,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        } else {
+            Text(
+                text = stringResource(id = R.string.screen_detail_not_found),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+    }
 }
 
