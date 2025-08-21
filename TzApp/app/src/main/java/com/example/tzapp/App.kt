@@ -30,18 +30,24 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.tzapp.data.Repository
+import com.example.tzapp.ui.auth.LoginScreen
+import com.example.tzapp.ui.profile.ProfileScreen
+import com.example.tzapp.ui.search.SearchScreen
+import com.example.tzapp.ui.settings.SettingsScreen
 
-enum class Route(val route: String) { Home("home"), List("list"), Detail("detail/{id}"), About("about") }
+enum class Route(val route: String) { Home("home"), List("list"), Detail("detail/{id}"), Search("search"), Profile("profile"), Login("login"), Settings("settings"), About("about") }
 
 data class BottomItem(
 	val route: Route,
-	@StringRes val titleRes: Int,
-	@DrawableRes val iconRes: Int
+	@StringRes val titleRes: Int,	@DrawableRes val iconRes: Int
 )
 
 private val bottomItems = listOf(
 	BottomItem(Route.Home, R.string.nav_home, R.drawable.ic_home),
 	BottomItem(Route.List, R.string.nav_list, R.drawable.ic_list),
+	BottomItem(Route.Search, R.string.nav_search, R.drawable.ic_search),
+	BottomItem(Route.Profile, R.string.nav_profile, R.drawable.ic_person),
+	BottomItem(Route.Settings, R.string.nav_settings, R.drawable.ic_settings),
 	BottomItem(Route.About, R.string.nav_about, R.drawable.ic_info)
 )
 
@@ -84,7 +90,12 @@ fun App() {
 			startDestination = Route.Home.route,
 			modifier = Modifier.padding(padding)
 		) {
-			composable(Route.Home.route) { HomeScreen(padding) }
+			composable(Route.Home.route) {
+				HomeScreen(
+					onOpenProfile = { navController.navigate(Route.Profile.route) },
+					onOpenSettings = { navController.navigate(Route.Settings.route) }
+				)
+			}
 			composable(Route.List.route) { ListScreen(onOpen = { id ->
 				navController.navigate("detail/$id")
 			}) }
@@ -95,6 +106,10 @@ fun App() {
 				val id = backStackEntry.arguments?.getInt("id") ?: -1
 				DetailScreen(id = id)
 			}
+			composable(Route.Search.route) { SearchScreen(onOpen = { id -> navController.navigate("detail/$id") }) }
+			composable(Route.Profile.route) { ProfileScreen(onRequestLogin = { navController.navigate(Route.Login.route) }, onLogout = { navController.popBackStack() }) }
+			composable(Route.Login.route) { LoginScreen(onSuccess = { navController.popBackStack(); navController.navigate(Route.Profile.route) }) }
+			composable(Route.Settings.route) { SettingsScreen() }
 			composable(Route.About.route) { AboutScreen(padding) }
 		}
 	}
@@ -105,8 +120,27 @@ private fun isSelected(destination: NavDestination?, route: String): Boolean {
 }
 
 @Composable
-private fun HomeScreen(padding: PaddingValues) {
-	Centered(text = stringResource(id = R.string.screen_home))
+private fun HomeScreen(onOpenProfile: () -> Unit, onOpenSettings: () -> Unit) {
+	Column(
+		modifier = Modifier
+			.fillMaxSize()
+			.padding(24.dp),
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Center
+	) {
+		Text(
+			text = stringResource(id = R.string.screen_home),
+			style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+		)
+		androidx.compose.material3.Button(
+			onClick = onOpenProfile,
+			modifier = Modifier.padding(top = 16.dp)
+		) { Text(text = stringResource(id = R.string.action_open_profile)) }
+		androidx.compose.material3.OutlinedButton(
+			onClick = onOpenSettings,
+			modifier = Modifier.padding(top = 8.dp)
+		) { Text(text = stringResource(id = R.string.action_open_settings)) }
+	}
 }
 
 @Composable
@@ -196,4 +230,3 @@ private fun DetailScreen(id: Int) {
         }
     }
 }
-

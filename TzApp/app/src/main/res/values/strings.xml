@@ -3,6 +3,9 @@
 
 	<string name="nav_home">Главная</string>
 	<string name="nav_list">Список</string>
+	<string name="nav_search">Поиск</string>
+	<string name="nav_profile">Профиль</string>
+	<string name="nav_settings">Настройки</string>
 	<string name="nav_about">О приложении</string>
 
 	<string name="screen_home">Экран: Главная</string>
