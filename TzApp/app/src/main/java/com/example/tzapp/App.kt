@@ -182,7 +182,15 @@ fun App() {
 				val id = backStackEntry.arguments?.getInt("id") ?: -1
 				RecommendationDetailScreen(id = id)
 			}
-			composable(Route.Planner.route) { PlannerScreen() }
+			composable(Route.Planner.route) {
+				PlannerScreen(onGoHome = {
+					navController.navigate(Route.Home.route) {
+						popUpTo(navController.graph.startDestinationId) { saveState = true }
+						launchSingleTop = true
+						restoreState = true
+					}
+				})
+			}
 			composable(Route.Trainers.route) {
 				TrainersScreen(onGoHome = {
 					navController.navigate(Route.Home.route) {

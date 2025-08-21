@@ -16,6 +16,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.workDataOf
 import com.example.tzapp.work.ReminderWorker
 import java.util.concurrent.TimeUnit
+import android.widget.Toast
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardOptions
 
 enum class EventType(val label: String, val color: Color) {
     MEDS("Лекарства", Color(0xFF2962FF)),
@@ -52,7 +56,7 @@ enum class EventType(val label: String, val color: Color) {
     EVENT("Мероприятия", Color(0xFF2E7D32))
 }
 
-private fun PlannerEventEntity.toUi(): PlannerEventUi = PlannerEventUi(
+private fun com.example.tzapp.data.planner.PlannerEventEntity.toUi(): PlannerEventUi = PlannerEventUi(
     id = id,
     title = title,
     type = when (type) {
@@ -92,7 +96,7 @@ class PlannerVm(private val repo: PlannerRepository) : ViewModel() {
 }
 
 @Composable
-fun PlannerScreen() {
+fun PlannerScreen(onGoHome: (() -> Unit)? = null) {
     val context = LocalContext.current
     val vm: PlannerVm = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -108,7 +112,12 @@ fun PlannerScreen() {
     var repeat by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Планировщик")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Планировщик", style = MaterialTheme.typography.titleLarge)
+            if (onGoHome != null) {
+                TextButton(onClick = onGoHome) { Text("На главную") }
+            }
+        }
         // Простой месячный календарь с точками
         val cal = remember { Calendar.getInstance() }
         val daysInMonth = remember(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH)) {
@@ -158,8 +167,22 @@ fun PlannerScreen() {
                 }
             }
         }
-        OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Название") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-        OutlinedTextField(value = dateTime, onValueChange = { dateTime = it }, label = { Text("Дата и время (строка)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+        OutlinedTextField(
+            value = title,
+            onValueChange = { title = it },
+            label = { Text("Название (русский текст поддерживается)") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        )
+        OutlinedTextField(
+            value = dateTime,
+            onValueChange = { dateTime = it },
+            label = { Text("Дата и время (напр. 25.08.2025 14:30)") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        )
         Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             EventType.values().forEach { t ->
                 FilterChip(selected = type == t, onClick = { type = t }, label = { Text(t.label) })
@@ -196,9 +219,10 @@ fun PlannerScreen() {
                         ).build()
                     WorkManager.getInstance(context).enqueue(work)
                 }
+                Toast.makeText(context, "Сохранено", Toast.LENGTH_SHORT).show()
                 title = ""
             }
-        }, modifier = Modifier.padding(top = 8.dp)) { Text("Добавить") }
+        }, modifier = Modifier.padding(top = 8.dp)) { Text("Сохранить") }
 
         LazyColumn(modifier = Modifier.padding(top = 12.dp)) {
             items(events) { e ->
@@ -222,4 +246,3 @@ fun PlannerScreen() {
         }
     }
 }
-
