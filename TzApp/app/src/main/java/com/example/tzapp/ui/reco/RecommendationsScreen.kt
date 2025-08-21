@@ -135,7 +135,7 @@ fun RecommendationDetailScreen(id: Int) {
     if (a != null) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Text(a.title, style = MaterialTheme.typography.headlineSmall)
-            Text(a.author, style = MaterialTheme.typTypography.bodySmall)
+            Text(a.author, style = MaterialTheme.typography.bodySmall)
             Text(a.content, modifier = Modifier.padding(top = 12.dp))
         }
     } else {
