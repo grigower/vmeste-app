@@ -2,7 +2,15 @@ package com.example.tzapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Primary = Color(0xFF2962FF)
-val Secondary = Color(0xFF00BFA5)
-val Tertiary = Color(0xFFFF6D00)
+// Core palette per spec
+val LightBluePrimary = Color(0xFF64B5F6) // светло-голубой
+val BeigeSecondary = Color(0xFFF5E9DA)   // бежевый
+val WhiteBackground = Color(0xFFFFFFFF)  // белый
+
+// Accents
+val OrangeAction = Color(0xFFFF9800)     // оранжевый для действий
+val RedEmergency = Color(0xFFD32F2F)     // красный для экстренного
+
+// Text
+val TextDark = Color(0xFF212121)         // тёмный текст
 

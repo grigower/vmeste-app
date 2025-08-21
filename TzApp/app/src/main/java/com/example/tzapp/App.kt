@@ -256,14 +256,24 @@ private fun HomeScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { showEmergency = true }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { showEmergency = true }, modifier = Modifier.fillMaxWidth(),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = com.example.tzapp.ui.theme.RedEmergency,
+                contentColor = androidx.compose.ui.graphics.Color.White
+            )
+        ) {
             Text(text = stringResource(id = R.string.home_emergency) + " 🚨")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = onOpenProfile, modifier = Modifier.weight(1f)) {
+            Button(onClick = onOpenProfile, modifier = Modifier.weight(1f),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = com.example.tzapp.ui.theme.OrangeAction,
+                    contentColor = androidx.compose.ui.graphics.Color.White
+                )
+            ) {
                 Text(text = stringResource(id = R.string.action_open_profile))
             }
             OutlinedButton(onClick = onOpenSettings, modifier = Modifier.weight(1f)) {
