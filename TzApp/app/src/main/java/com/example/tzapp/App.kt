@@ -20,11 +20,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -96,6 +98,25 @@ fun App() {
 	val currentDestination = backStackEntry?.destination
 
 	Scaffold(
+		topBar = {
+			val isHome = currentDestination?.route == Route.Home.route
+			if (!isHome) {
+				TopAppBar(
+					title = { Text(stringResource(id = R.string.app_name)) },
+					navigationIcon = {
+						IconButton(onClick = {
+							navController.navigate(Route.Home.route) {
+								popUpTo(navController.graph.startDestinationId) { saveState = true }
+								launchSingleTop = true
+								restoreState = true
+							}
+						}) {
+							Icon(painter = painterResource(id = R.drawable.ic_home), contentDescription = stringResource(id = R.string.nav_home))
+						}
+					}
+				)
+			}
+		},
 		bottomBar = {
 			NavigationBar {
 				bottomItems.forEach { item ->
