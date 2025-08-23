@@ -1,0 +1,32 @@
+<resources>
+	<string name="app_name">TzApp</string>
+
+	<string name="nav_home">Главная</string>
+	<string name="nav_list">Список</string>
+	<string name="nav_search">Поиск</string>
+	<string name="nav_profile">Профиль</string>
+	<string name="nav_settings">Настройки</string>
+	<string name="nav_about">О приложении</string>
+
+	<string name="screen_home">Экран: Главная</string>
+	<string name="screen_list">Экран: Список (нажмите на элемент)</string>
+	<string name="screen_about">Экран: О приложении</string>
+	<string name="screen_detail_title">Детали элемента #%1$d</string>
+	<string name="screen_detail_not_found">Элемент не найден</string>
+
+	<!-- Home feature buttons -->
+	<string name="home_recommendations">Рекомендации</string>
+	<string name="home_trainers">Тренажёры</string>
+	<string name="home_planner">Планировщик</string>
+	<string name="home_diary">Дневник</string>
+	<string name="home_help_nearby">Помощь рядом</string>
+	<string name="home_daily_phrase">Вы делаете важную работу. Мы с вами.</string>
+	<string name="home_emergency">Срочная помощь</string>
+	<string name="action_open_profile">Открыть профиль</string>
+	<string name="action_open_settings">Открыть настройки</string>
+	<string name="emergency_dialog_title">Срочная помощь</string>
+	<string name="emergency_call_ambulance">Вызов скорой</string>
+	<string name="emergency_call_police">Вызов полиции</string>
+	<string name="emergency_call_relatives">Позвонить близким</string>
+</resources>
+
